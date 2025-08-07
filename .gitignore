@@ -1,0 +1,33 @@
+# Add this content to .gitignore
+@'
+# Binaries
+*.exe
+sre-health-checker
+health-checker
+
+# Test binary
+*.test
+
+# Go files
+*.out
+go.work
+go.sum
+
+# Dependencies
+vendor/
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Logs
+*.log
+'@ | Set-Content -Path .gitignore
