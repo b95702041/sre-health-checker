@@ -1,0 +1,97 @@
+groups:
+  - name: service_health
+    interval: 30s
+    rules:
+      # Alert when a service is down
+      - alert: ServiceDown
+        expr: service_up == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: application
+        annotations:
+          summary: "Service {{ $labels.service }} is down"
+          description: "{{ $labels.service }} at {{ $labels.url }} has been down for more than 2 minutes."
+          
+      # Alert when response time is high
+      - alert: HighResponseTime
+        expr: service_response_time_ms > 5000
+        for: 5m
+        labels:
+          severity: warning
+          component: application
+        annotations:
+          summary: "High response time for {{ $labels.service }}"
+          description: "{{ $labels.service }} response time is {{ $value }}ms (threshold: 5000ms)"
+      
+      # Alert when response time is critically high
+      - alert: CriticalResponseTime
+        expr: service_response_time_ms > 10000
+        for: 2m
+        labels:
+          severity: critical
+          component: application
+        annotations:
+          summary: "Critical response time for {{ $labels.service }}"
+          description: "{{ $labels.service }} response time is {{ $value }}ms (critical threshold: 10000ms)"
+
+  - name: infrastructure
+    interval: 30s
+    rules:
+      # Alert when the health checker itself is down
+      - alert: HealthCheckerDown
+        expr: up{job="health-checker"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: monitoring
+        annotations:
+          summary: "Health Checker service is down"
+          description: "The SRE Health Checker service has been down for more than 1 minute."
+      
+      # Alert on high CPU usage
+      - alert: HighCPUUsage
+        expr: (100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)) > 80
+        for: 5m
+        labels:
+          severity: warning
+          component: infrastructure
+        annotations:
+          summary: "High CPU usage on {{ $labels.instance }}"
+          description: "CPU usage is above 80% (current value: {{ $value }}%)"
+      
+      # Alert on high memory usage
+      - alert: HighMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 90
+        for: 5m
+        labels:
+          severity: warning
+          component: infrastructure
+        annotations:
+          summary: "High memory usage on {{ $labels.instance }}"
+          description: "Memory usage is above 90% (current value: {{ $value }}%)"
+
+  - name: monitoring_stack
+    interval: 30s
+    rules:
+      # Alert when Prometheus is down
+      - alert: PrometheusDown
+        expr: up{job="prometheus"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: monitoring
+        annotations:
+          summary: "Prometheus is down"
+          description: "Prometheus has been down for more than 1 minute."
+      
+      # Alert when Grafana is down
+      - alert: GrafanaDown
+        expr: up{job="grafana"} == 0
+        for: 2m
+        labels:
+          severity: warning
+          component: monitoring
+        annotations:
+          summary: "Grafana is down"
+          description: "Grafana has been down for more than 2 minutes."
